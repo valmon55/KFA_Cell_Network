@@ -90,7 +90,7 @@ TRUNCATE TABLE CELL_NUMBER
 
 /* вставка из внешней таблицы */
 INSERT INTO CELL_NUMBER(CELL_NUMBER) 
-SELECT cellnumber FROM ext_Cell_Number
+SELECT DISTINCT cellnumber FROM ext_Cell_Number
 COMMIT;
 
 	
