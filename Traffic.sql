@@ -21,11 +21,19 @@ ALTER TABLE TRAFFIC DROP  COLUMN  traffic_type;
 
 ALTER TABLE TRAFFIC 
 	ADD CONSTRAINT fk_oper_type FOREIGN KEY (oper_type_id) REFERENCES oper_type(id);
+
 ALTER TABLE TRAFFIC 
+	MODIFY amount number(16,5)
+
+/*ALTER TABLE TRAFFIC 
+	--DROP CONSTRAINT fk_inc_number 
 	ADD CONSTRAINT fk_inc_number FOREIGN KEY (inc_number) REFERENCES Cell_Number(Cell_Number);
 ALTER TABLE TRAFFIC 
+	--DROP CONSTRAINT fk_out_number 
 	ADD CONSTRAINT fk_out_number FOREIGN KEY (out_number) REFERENCES Cell_Number(Cell_Number);
+*/
 
+SELECT * FROM TRAFFIC t 
 
 
 CREATE SEQUENCE seq_traffic
@@ -48,6 +56,9 @@ CREATE TABLE oper_type
 	name varchar2(12) UNIQUE NOT NULL,
 	decs varchar2(48)
 );
+
+ALTER TABLE oper_type
+	ADD unit varchar2(10);
 
 CREATE SEQUENCE seq_oper_type
 	START WITH 1 INCREMENT BY 1; 
@@ -73,3 +84,12 @@ SELECT 'Call' FROM DUAL
 UNION ALL 
 SELECT 'Inet' FROM DUAL 
 
+UPDATE oper_type
+SET DECS = 'Measured in minutes'
+WHERE name = 'Call';
+COMMIT;
+
+UPDATE oper_type
+SET unit = 'Message'
+WHERE name = 'MMS';
+COMMIT;

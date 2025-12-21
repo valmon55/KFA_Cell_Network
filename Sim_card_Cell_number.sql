@@ -84,7 +84,13 @@ END;
 
 
 ----------------------------------------------------------------
-SELECT * FROM CELL_NUMBER cn 
+SELECT cn.*,  '+7' || SUBSTR(CELL_NUMBER,2) FROM CELL_NUMBER cn 
+
+SELECT COUNT(*) FROM CELL_NUMBER sample(0.01) cn 
+
+UPDATE CELL_NUMBER SET CELL_NUMBER  = '+7' || SUBSTR(CELL_NUMBER,2) 
+
+--commit
 
 TRUNCATE TABLE CELL_NUMBER
 
