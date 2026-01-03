@@ -59,4 +59,65 @@ FROM DBA_DIRECTORIES ORDER BY DIRECTORY_NAME;
 SELECT * FROM TABLE(DBMS_XPLAN.DISPLAY_CURSOR(NULL, NULL, 'ALLSTATS LAST'));
 
 
-SELECT * FROM v$sql
+SELECT * FROM v$sql WHERE sql_fulltext  LIKE '%WHERE t.INC_NUMBER = cn.CELL_NUMBER AND 1=1%'
+
+/* Сравнить estimated vs actual  */
+SELECT 
+  p.operation,
+  p.options,
+  p.object_name,
+  p.cardinality AS estimated,
+  s.last_output_rows AS actual,
+  ROUND(s.last_output_rows / NULLIF(p.cardinality, 0) * 100, 2) || '%' AS diff_percent
+FROM v$sql_plan p
+JOIN v$sql_plan_statistics_all s ON p.sql_id = s.sql_id 
+                                  --AND p.child_number = s.child_number
+                                  --AND p.id = p.operation_id
+WHERE p.sql_id = '63v5axr2pj79a'
+  AND p.cardinality > 0
+ORDER BY p.id;
+
+ALTER SESSION SET STATISTICS_level = ALL 
+
+-- Найти SQL_ID в AWR
+SELECT sql_id, sql_text
+FROM dba_hist_sqltext
+WHERE sql_text LIKE '%WHERE t.INC_NUMBER = cn.CELL_NUMBER AND 1=1%'
+  AND ROWNUM <= 5;
+ 
+-- Получить план из AWR
+SELECT * FROM TABLE(DBMS_XPLAN.DISPLAY_AWR(
+  sql_id => '63v5axr2pj79a',
+  plan_hash_value => NULL,
+  format => 'TYPICAL'
+));
+
+SELECT * FROM v$sql_plan p
+WHERE p.sql_id = 'cpwdqy3y9art8'
+
+SELECT * FROM v$sql_plan_statistics_all
+
+-- Для текущего выполняющегося запроса
+SELECT DBMS_SQLTUNE.REPORT_SQL_MONITOR(
+  sql_id => '63v5axr2pj79a',
+  type => 'ACTIVE',
+  report_level => 'ALL') AS report
+FROM dual;
+
+-- Для последнего выполненного запроса
+SELECT DBMS_SQLTUNE.REPORT_SQL_MONITOR(
+  sql_id => (SELECT sql_id FROM v$sql 
+             WHERE sql_text LIKE '%WHERE t.INC_NUMBER = cn.CELL_NUMBER AND 1=1%' 
+             
+             AND ROWNUM = 1),
+  type => 'TEXT') AS report
+FROM dual;
+
+SELECT 
+  *
+FROM v$sql_plan_statistics_all s
+JOIN v$sql_plan p ON p.sql_id = s.sql_id 
+                  AND p.child_number = s.child_number
+                  --AND p.id = s.operation_id
+WHERE p.sql_id = '63v5axr2pj79a'
+ORDER BY p.id;
