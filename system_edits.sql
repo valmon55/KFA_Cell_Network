@@ -5,6 +5,14 @@ CREATE USER KFA IDENTIFIED BY bmw325xi;
 GRANT CONNECT, CREATE SESSION, RESOURCE TO KFA; 
 GRANT CREATE SESSION TO KFA;
 
+--JOBs
+GRANT CREATE job TO KFA;
+
+-- Check job status
+SELECT job_name, state, last_start_date, next_run_date
+FROM dba_scheduler_jobs
+WHERE job_name = 'INC_TRAFFIC';
+
 ALTER USER KFA quota unlimited on USERS;
 
 SELECT * FROM dba_sys_privs WHERE GRANTEE = 'KFA'; 
